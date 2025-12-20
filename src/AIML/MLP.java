@@ -21,10 +21,8 @@ public class MLP {
         this.learningRate = learningRate;
         
         layers = new Layer[sizes.length - 1];
-        for (int i = 0; i < layers.length; i++) {
-            layers[i] = new Layer(sizes[i], sizes[i + 1]);
-            layers[i].randomizeWeights();
-        }
+        for (int i = 0; layers.length > i; i++) layers[i] = new Layer(sizes[i], sizes[i + 1], MLP.LINEAR);
+        
     }
     public MLP(float learningRate, float maxBiasInitialization, int... sizes) { 
         if (sizes.length < 2)  throw new IllegalArgumentException("Need at least input and output size");
@@ -32,17 +30,14 @@ public class MLP {
         this.learningRate = learningRate;
         
         layers = new Layer[sizes.length - 1];
-        for (int i = 0; i < layers.length; i++) {
-            layers[i] = new Layer(sizes[i], sizes[i + 1], maxBiasInitialization);
-            layers[i].randomizeWeights();
-        }
+        for (int i = 0; layers.length > i; i++) layers[i] = new Layer(sizes[i], sizes[i + 1], MLP.LINEAR);
+        
     }
     
     private MLP(float learningRate, Layer[] layers) {
         this.learningRate = learningRate;
         this.layers = layers;
     }
-    
     
     /**
      * Forward pass through all layers.
@@ -51,88 +46,63 @@ public class MLP {
      * @return Output column {@link Matrix.Matrix} ({@link Matrix.Matrix} of shape outputSize × 1).
      */
     public float[] forward(float[] input) {
-        Matrix.Matrix result = input;
-        // All the hidden layers
-        for (int i = 0; layers.length - 1 > i; i++) result = layers[i].forward(result, hiddenActivation);
+        float[] result = input;
         
-        // Final layer
-        result = layers[layers.length - 1].forward(result, finalActivation);
+        // Pass the output of each layer as the input of the next until
+        // all layers have been fowarded.
+        for (int i = 0; layers.length > i; i++) result = layers[i].forward(result);
+        
         return result;
     }
             
     public void train(float[] input, float[] target) {
-        Matrix.Matrix[] inputs = new Matrix.Matrix[layers.length];
-        Matrix.Matrix result = input;
+        // Forward pass.
+        float[] result = input;
+        for (int i = 0; i < layers.length; i++) result = layers[i].forward(result);
 
-        // Hidden layers use hiddenActivation
-        for (int i = 0; i < layers.length - 1; i++) {
-            inputs[i] = result;
-            result = layers[i].forward(result, hiddenActivation);
-        }
-
-        // Final layer uses finalActivation
-        inputs[layers.length - 1] = result;
-        result = layers[layers.length - 1].forward(result, finalActivation);
+        // Compute output error.
+        float[] error = new float[target.length];
+        for (int i = 0; i < target.length; i++) error[i] = target[i] - result[i];
         
-        // Compute error at output
-        Matrix.Matrix error = target.subtract(result);
 
-        // Start delta with output error
-        Matrix.Matrix delta = error;
-
-        // Backprop through layers
-        for (int i = layers.length - 1; i >= 0; i--) {
-            if (i == layers.length - 1) 
-                // Final layer: use finalActivationDerivative
-                delta = layers[i].backward(delta, learningRate, inputs[i], finalActivation);
-            else 
-                // Hidden layers: use hiddenActivationDerivative
-                delta = layers[i].backward(delta, learningRate, inputs[i], hiddenActivation);
-        }
-    }
-    public void reward(float[] input, float reward) {
-        Matrix.Matrix currentInputs = input;
-
-        for (int i = 0; layers.length - 1 > i; i++) {
-            layers[i].reward(currentInputs, reward, learningRate);
-            currentInputs = layers[i].forward(currentInputs, hiddenActivation);
-        }
+        // Backprop.
+        float[] delta = error;
+        for (int i = layers.length - 1; i >= 0; i--) delta = layers[i].backward(delta, learningRate);
     }
     
-    public AIML.MLP mutateUniform(float mutation) {
-        // What the new layers of the new neural net will be
-        Layer[] newLayers = new Layer[this.layers.length];
-        
-        // Mutate each value of the layers weights & biases 
-        // by some value between [-mutation, mutation].
-        for (int i = 0; this.layers.length > i; i++) {
-            Matrix.Matrix newWeights = this.layers[i].getWeightMatrix();
-            Matrix.Matrix newBiases = this.layers[i].getBiasMatrix();
-            
-            newWeights.mutate(val -> (float)(val + ((Math.random() * 2) - 1) * mutation));
-            newBiases.mutate(val  -> (float)(val + ((Math.random() * 2) - 1) * mutation));
-            
-            newLayers[i] = new Layer(newWeights, newBiases);
-        }
-        
-        return new AIML.MLP(this.learningRate, newLayers);
+    public AIML.MLP uniformMutate(float mutation) {
+        return this.mutate( (a) -> {
+                float mutate = (float) ((Math.random() * 2 - 1) * mutation);
+                return a + mutate;
+            }
+        );
     }
-    public AIML.MLP mutateGaussian(float mutation) {
+    public AIML.MLP gaussianMutate(float mutation) {
+        return this.mutate( (a) -> {
+                float mutate = (float) (rand.nextGaussian() * mutation);
+                return a + mutate;
+            }
+        );
+    }
+    public AIML.MLP mutate(java.util.function.Function<Float, Float> mutate) {
         // What the new layers of the new neural net will be
         Layer[] newLayers = new Layer[this.layers.length];
         
-        // Mutate each value of the layers weights & biases 
-        // by some value between [-mutation, mutation].
+        // Mutate each value of the layers weights
         for (int i = 0; this.layers.length > i; i++) {
-            Matrix.Matrix newWeights = this.layers[i].getWeightMatrix();
-            Matrix.Matrix newBiases = this.layers[i].getBiasMatrix();
+            Layer l = this.layers[i];
+            float[][] newWeights = new float[l.OUTPUTSIZE][l.INPUTSIZE];
+            float[][] currentWeights = l.getWeightMatrix();
+            for (int r = 0; newWeights.length > r; r++) for (int c = 0; newWeights[r].length > c; c++)
+                newWeights[r][c] = mutate.apply(currentWeights[r][c]);
             
-            newWeights.mutate(val -> (float)(val + rand.nextGaussian() * mutation));
-            newBiases.mutate(val  -> (float)(val + rand.nextGaussian() * mutation));
-            
-            newLayers[i] = new Layer(newWeights, newBiases);
+            float[] newBiases = new float[l.getNeuronCount()];
+            float[] currentBiases = l.getBiasVector();
+            for (int k = 0; newBiases.length > k; k++) 
+                newBiases[k] = mutate.apply(currentBiases[k]);
+
+            newLayers[i] = new Layer(newWeights, newBiases, l.activation);
         }
-        
         return new AIML.MLP(this.learningRate, newLayers);
     }
     
@@ -141,12 +111,12 @@ public class MLP {
 
     private class Layer {
         // Store the input & output sizes.
-        private int inputSize;
-        private int outputSize;
+        private final int INPUTSIZE;
+        private final int OUTPUTSIZE;
 
         // Weight matrix & bias vector.
-        private float[][] weights;
-        private float[] biases;
+        private final float[][] weights;
+        private final float[] biases;
 
         // Store the input, output, & delta.
         private float[] input;
@@ -156,8 +126,9 @@ public class MLP {
         private Activation activation = MLP.LINEAR;
 
         public Layer(int inputSize, int outputSize, Activation activation) {
-            this.inputSize = inputSize;
-            this.outputSize = outputSize;
+            this.INPUTSIZE = inputSize;
+            this.OUTPUTSIZE = outputSize;
+            
             this.activation = activation;
 
             this.weights = new float[outputSize][inputSize];
@@ -165,11 +136,33 @@ public class MLP {
 
             initWeights();
         }
+        
+        public Layer(float[][] weights, float[] biases, Activation activation) {
+            if (weights == null || weights.length == 0)
+                throw new IllegalArgumentException("Weights cannot be null or empty");  
+ 
+            this.INPUTSIZE = weights[0].length;
+            
+            for (float[] row : weights) {
+                if (row.length != this.INPUTSIZE)
+                    throw new IllegalArgumentException("All weight rows must have same length");
+            }
+            
+            this.OUTPUTSIZE = weights.length;
+            
+            this.activation = activation;
+            
+            this.weights = new float[weights.length][this.INPUTSIZE];
+            for (int i = 0; i < weights.length; i++)
+                System.arraycopy(weights[i], 0, this.weights[i], 0, this.INPUTSIZE);
+
+            this.biases = java.util.Arrays.copyOf(biases, biases.length);
+        }
 
         private void initWeights() {
             java.util.Random rand = new java.util.Random();
-            for (int i = 0; i < outputSize; i++) {
-                for (int j = 0; j < inputSize; j++) {
+            for (int i = 0; i < OUTPUTSIZE; i++) {
+                for (int j = 0; j < INPUTSIZE; j++) {
                     weights[i][j] = (float) (rand.nextGaussian() * 0.01);
                 }
                 biases[i] = 0.0f;
@@ -178,40 +171,46 @@ public class MLP {
 
         public float[] forward(float[] input) {
             this.input = input;
-            this.output = new float[outputSize];
+            this.output = new float[OUTPUTSIZE];
 
             // Loop through each neuron
-            for (int i = 0; i < outputSize; i++) {
+            for (int i = 0; i < OUTPUTSIZE; i++) {
+                // Start with the bias.
                 float sum = biases[i];
-                for (int j = 0; j < inputSize; j++) sum += weights[i][j] * input[j];
+        
+                // Calculate the weighted sum.
+                for (int j = 0; j < INPUTSIZE; j++) sum += weights[i][j] * input[j];
+                
+                // Apply the activation function and store it in the output array.
                 output[i] = activation.activate.apply(sum);
             }
             return output;
         }
 
         public float[] backward(float[] gradOutput, float learningRate) {
-            float[] gradInput = new float[inputSize];
-            delta = new float[outputSize];
+            float[] gradInput = new float[INPUTSIZE];
+            delta = new float[OUTPUTSIZE];
 
             // Get the delta ( derivative ).
-            for (int i = 0; i < outputSize; i++) 
+            for (int i = 0; i < OUTPUTSIZE; i++) 
                 delta[i] = gradOutput[i] * activation.derivative.apply(output[i]);
             
 
             // Get the gradient.
-            for (int i = 0; i < inputSize; i++) for (int j = 0; j < outputSize; j++) 
+            for (int i = 0; i < INPUTSIZE; i++) for (int j = 0; j < OUTPUTSIZE; j++) 
                 gradInput[i] += delta[j] * weights[j][i];
                 
             // Update weights and biases.
-            for (int i = 0; i < outputSize; i++) {
-                for (int j = 0; j < inputSize; j++) weights[i][j] -= learningRate * delta[i] * input[j];
+            for (int i = 0; i < OUTPUTSIZE; i++) {
+                for (int j = 0; j < INPUTSIZE; j++) weights[i][j] -= learningRate * delta[i] * input[j];
                 biases[i] -= learningRate * delta[i];
             }
             return gradInput;
         }
         
-        public int getNeuronCount() { return biases.length; }
-        
+        public int getNeuronCount() { return this.biases.length; }
+        public float[][] getWeightMatrix() { return this.weights; }
+        public float[] getBiasVector() { return biases; }
     }
     
     @Override
