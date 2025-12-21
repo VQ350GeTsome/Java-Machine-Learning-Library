@@ -1,12 +1,15 @@
 
+
+
 public class test {
 
     // XOR test
     public static void main(String[] args) {
         
-        AIML.MLP mlp = new AIML.MLP(0.05f, 2, 2, 1);
+        AIML.MLP mlp = new AIML.MLP(0.1f, 2, 4, 1);
         
-        mlp.setAllLayerActivation(AIML.MLP.SIGMOID);
+        mlp.setAllLayerActivation(AIML.Activation.HARD_SIGMOID);
+        mlp.setFinalLayerActivation(AIML.Activation.LINEAR);
         
         float [][] inputs = {
             { 0 , 0 },

@@ -21,7 +21,7 @@ public class MLP {
         this.learningRate = learningRate;
         
         layers = new Layer[sizes.length - 1];
-        for (int i = 0; layers.length > i; i++) layers[i] = new Layer(sizes[i], sizes[i + 1], MLP.LINEAR);
+        for (int i = 0; layers.length > i; i++) layers[i] = new Layer(sizes[i], sizes[i + 1], AIML.Activation.LINEAR);
         
     }
     
@@ -48,7 +48,7 @@ public class MLP {
     public void train(float[] input, float[] target) {
         // Forward pass.
         float[] result = input;
-        for (int i = 0; i < layers.length; i++) result = layers[i].forward(result);
+        for (Layer layer : layers) result = layer.forward(result);
 
         // Compute output error.
         float[] error = new float[target.length];
@@ -117,9 +117,9 @@ public class MLP {
         // Store the input, output, delta, & z.
         private float[] input, output, delta, z;
 
-        private Activation activation = MLP.LINEAR;
+        private AIML.Activation activation = AIML.Activation.LINEAR;
 
-        public Layer(int inputSize, int outputSize, Activation activation) {
+        public Layer(int inputSize, int outputSize, AIML.Activation activation) {
             this.INPUTSIZE = inputSize;
             this.OUTPUTSIZE = outputSize;
             
@@ -177,7 +177,7 @@ public class MLP {
                 
                 // Apply the activation function and store it in the output array.
                 z[i] = sum;
-                output[i] = activation.activate.apply(sum);
+                output[i] = activation.apply(sum);
             }
             return output;
         }
@@ -188,7 +188,7 @@ public class MLP {
 
             // Get the delta ( derivative ).
             for (int i = OUTPUTSIZE - 1; i >= 0; i--) 
-                delta[i] = gradOutput[i] * activation.derivative.apply(z[i]);            
+                delta[i] = gradOutput[i] * activation.derive(z[i]);
 
             // Get the gradient.
             for (int i = 0; i < INPUTSIZE; i++) for (int j = 0; j < OUTPUTSIZE; j++) 
@@ -212,45 +212,4 @@ public class MLP {
         // Needs to be made. Print weights & biases.
         return "";
     }
-     
-    //<editor-fold defaultstate="collapsed" desc=" Activation Functions ">
-    
-    // Activation function data holder.
-    public record Activation(java.util.function.Function<Float, Float> activate,
-                          java.util.function.Function<Float, Float> derivative) {};
-
-    // The actual activation functions
-    public static final Activation 
-            LINEAR = new Activation
-            (
-                (a) -> (a), 
-                (a) -> 1.0f
-            ),
-            RELU = new Activation
-            (
-                (a) -> a > 0 ? a : 0.0f, 
-                (a) -> a > 0 ? 1.0f : 0.0f
-            ),
-            LEAKYRELU = new Activation
-            (
-                (a) -> a >= 0 ? a : 0.01f * a, 
-                (a) -> a >= 0 ? 1.0f : 0.01f
-            ),
-            SIGMOID = new Activation
-            (
-                (a) -> (float)(1.0 / (1.0 + Math.exp(-a))),
-                (a) -> {
-                    float s = (float)(1.0 / (1.0 + Math.exp(-a)));
-                    return s * (1 - s);
-                }
-            ),
-            TANH = new Activation
-            (
-                (a) -> (float)Math.tanh(a),
-                (a) -> {
-                    float t = (float)Math.tanh(a);
-                    return 1 - t * t;
-                }
-            );
-    //</editor-fold>
 }
