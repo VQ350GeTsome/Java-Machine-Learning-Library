@@ -1,10 +1,10 @@
-package MachineLearning;
+package ML;
 
 public class MLP implements AI{
 
     private Layer[] layers;
     private final float learningRate;
-    public static final java.util.Random RAND = new java.util.Random();
+    
     
     /**
      * Constructor that takes layer sizes.
@@ -48,7 +48,7 @@ public class MLP implements AI{
     }
 
     @Override
-    public void train(float[] input, float[] target) { this.train(input, target, (a, b) -> a - b); }
+    public void train(float[] input, float[] target) { this.train(input, target, (o, t) -> t - o); }
     @Override
     public void train(float[] input, float[] target, BinaryFloatFunc errorFunction) {
         // Forward pass.
@@ -78,17 +78,17 @@ public class MLP implements AI{
     
     @Override
     public MLP uniformMutate(float mutation) {
-        return this.mutate((a) -> {
+        return this.mutate((w) -> {
                 float mutate = (float) ((Math.random() * 2 - 1) * mutation);
-                return a + mutate;
+                return w + mutate;
             }
         );
     }
     @Override
     public MLP gaussianMutate(float mutation) {
-        return this.mutate((a) -> {
-                float mutate = (float) (RAND.nextGaussian() * mutation);
-                return a + mutate;
+        return this.mutate((w) -> {
+                float mutate = (float) (AI.RAND.nextGaussian() * mutation);
+                return w + mutate;
             }
         );
     }
@@ -168,9 +168,9 @@ public class MLP implements AI{
         private void initWeightsBiases() {
             for (int i = 0; i < outputSize; i++) {
                 for (int j = 0; j < inputSize; j++) {
-                    weights[i][j] = (float) (MLP.RAND.nextGaussian() * 0.5);
+                    weights[i][j] = (float) (AI.RAND.nextGaussian() * 0.5);
                 }
-                biases[i] = (float) (MLP.RAND.nextGaussian() * 0.05);
+                biases[i] = (float) (AI.RAND.nextGaussian() * 0.05);
             }
         }
 
@@ -208,8 +208,8 @@ public class MLP implements AI{
                 
             // Update weights and biases.
             for (int i = 0; i < outputSize; i++) {
-                for (int j = 0; j < inputSize; j++) weights[i][j] += learningRate * delta[i] * input[j];
-                biases[i] += learningRate * delta[i];
+                for (int j = 0; j < inputSize; j++) weights[i][j] -= learningRate * delta[i] * input[j];
+                biases[i] -= learningRate * delta[i];
             }
             return gradInput;
         }

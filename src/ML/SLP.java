@@ -1,4 +1,4 @@
-package MachineLearning;
+package ML;
 
 public class SLP implements AI {
     
@@ -33,8 +33,8 @@ public class SLP implements AI {
     private void initWeightsBiases() {
         for (int i = 0; i < outputSize; i++) {
             for (int j = 0; inputSize > j; j++) 
-                weights[i][j] = (float) (MLP.RAND.nextGaussian() * 0.50);
-            biases[i]  = (float) (MLP.RAND.nextGaussian() * 0.05);
+                weights[i][j] = (float) (AI.RAND.nextGaussian() * 0.50);
+            biases[i]  = (float) (AI.RAND.nextGaussian() * 0.05);
         }
     }
     
@@ -84,7 +84,7 @@ public class SLP implements AI {
     @Override
     public SLP gaussianMutate(float mutation) {
         return this.mutate((a) -> {
-                float mutate = (float) (MLP.RAND.nextGaussian() * mutation);
+                float mutate = (float) (AI.RAND.nextGaussian() * mutation);
                 return a + mutate;
             }
         );

@@ -1,9 +1,13 @@
-package MachineLearning;
+package ML;
 
 public interface AI {
     
+    // Random used for guassian distribution.
+    public static final java.util.Random RAND = new java.util.Random();
+    
     public abstract float[] forward(float[] inputs);
     
+    // Training methods
     public abstract void train(float[] inputs, float[] targets);
     public abstract void train(float[] inputs, float[] targets, MLP.BinaryFloatFunc errorFunc);
     
@@ -12,6 +16,7 @@ public interface AI {
     public abstract AI gaussianMutate(float mutation);
     public abstract AI mutate(MLP.SingleFloatFunc mutator);
     
+    // Activation functions
     public static final class Activation {
         private final MLP.SingleFloatFunc activation, derivative;
 
