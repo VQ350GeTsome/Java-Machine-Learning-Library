@@ -21,6 +21,15 @@ public class SLP implements AI {
         this.initWeightsBiases();
     }
     
+    private SLP(float learningRate, float[][] weights, float[] biases) {
+        this.learningRate = learningRate;
+        this.weights = weights;
+        this.biases = biases;
+        
+        this.inputSize = weights[0].length;
+        this.outputSize = weights.length;
+    }
+    
     private void initWeightsBiases() {
         for (int i = 0; i < outputSize; i++) {
             for (int j = 0; inputSize > j; j++) 
@@ -58,6 +67,35 @@ public class SLP implements AI {
             }
             biases[o] += learningRate * delta[o];
         }
+    }
+    
+    @Override
+    public AIML.SLP uniformMutate(float mutation) {
+        return this.mutate((a) -> {
+                float mutate = (float) ((Math.random() * 2 - 1) * mutation);
+                return a + mutate;
+            }
+        );
+    }
+    @Override
+    public AIML.SLP gaussianMutate(float mutation) {
+        return this.mutate((a) -> {
+                float mutate = (float) (AIML.MLP.RAND.nextGaussian() * mutation);
+                return a + mutate;
+            }
+        );
+    }
+    @Override
+    public AIML.SLP mutate(AIML.MLP.SingleFloatFunc mutator) {
+        float[][] newWeights = new float[outputSize][inputSize];
+        float[] newBiases = new float[outputSize];
+        
+        for (int i = 0; weights.length > i; i++) { 
+            for (int j = 0; weights[0].length > j; j++) 
+                newWeights[i][j] = mutator.apply(weights[i][j]);
+            newBiases[i] = mutator.apply(biases[i]);
+        }
+        return new AIML.SLP(this.learningRate, newWeights, newBiases);
     }
     
     public void changeActivation(AIML.Activation a) { this.activation = a; }   

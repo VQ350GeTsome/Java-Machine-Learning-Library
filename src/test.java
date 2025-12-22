@@ -12,9 +12,9 @@ public class test {
         
         AIML.SLP slp = new AIML.SLP(0.05f, 2, 1);
         
-        slp.changeActivation(Activation.RELU);
+        slp.changeActivation(Activation.SIGMOID);
         
-        andTest(slp);
+        orTest(slp);
     }
     
     private static void train(AIML.AI ai, float[][] inputs, float[][] targets) {
@@ -32,7 +32,7 @@ public class test {
                 "Input: " + java.util.Arrays.toString(inputs[i]) + "\t" + 
                 "Output: " + output +"\t" + 
                 "Target: " + target + "\t" +
-                "Conclusion? " + ((Math.abs(target - output) < 1.0e-2)?"Correct":"Wrong")
+                "Conclusion? " + ((Math.abs(target - output) < 0.01)?"Correct":"Wrong")
             );
         }
     }
@@ -49,6 +49,24 @@ public class test {
             {0},
             {0},
             {0},
+            {1}
+        };
+        
+        train(ai, inputs, targets);
+        display(ai, inputs, targets);
+    }
+    private static void orTest(AIML.AI ai) {
+        float[][] inputs = { 
+            {0,0},
+            {0,1},
+            {1,0},
+            {1,1}
+        };
+        
+        float[][] targets = {
+            {0},
+            {1},
+            {1},
             {1}
         };
         

@@ -75,13 +75,15 @@ public class MLP implements AI{
     public void setFinalLayerActivation(Activation a) { this.layers[this.layers.length - 1].activation = a; }
     public void setLayerActivation(int layer, Activation a) { this.layers[layer].activation = a; }
     
+    @Override
     public AIML.MLP uniformMutate(float mutation) {
-        return this.mutate( (a) -> {
+        return this.mutate((a) -> {
                 float mutate = (float) ((Math.random() * 2 - 1) * mutation);
                 return a + mutate;
             }
         );
     }
+    @Override
     public AIML.MLP gaussianMutate(float mutation) {
         return this.mutate((a) -> {
                 float mutate = (float) (RAND.nextGaussian() * mutation);
@@ -89,7 +91,8 @@ public class MLP implements AI{
             }
         );
     }
-    public AIML.MLP mutate(SingleFloatFunc mutate) {
+    @Override
+    public AIML.MLP mutate(SingleFloatFunc mutator) {
         // What the new layers of the new neural net will be
         Layer[] newLayers = new Layer[this.layers.length];
         
@@ -99,12 +102,12 @@ public class MLP implements AI{
             float[][] newWeights = new float[l.outputSize][l.inputSize];
             float[][] currentWeights = l.getWeightMatrix();
             for (int r = 0; newWeights.length > r; r++) for (int c = 0; newWeights[r].length > c; c++)
-                newWeights[r][c] = mutate.apply(currentWeights[r][c]);
+                newWeights[r][c] = mutator.apply(currentWeights[r][c]);
             
             float[] newBiases = new float[l.getNeuronCount()];
             float[] currentBiases = l.getBiasVector();
             for (int k = 0; newBiases.length > k; k++) 
-                newBiases[k] = mutate.apply(currentBiases[k]);
+                newBiases[k] = mutator.apply(currentBiases[k]);
 
             newLayers[i] = new Layer(newWeights, newBiases, l.activation);
         }
