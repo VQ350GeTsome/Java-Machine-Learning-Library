@@ -1,21 +1,13 @@
 package AIML;
 
-import java.util.function.Function;
-        
 public final class Activation {
     
-    private final Function activation, derivative;
-    float coeff;
+    private final AIML.MLP.SingleFloatFunc activation, derivative;
     
-    public Activation(Function<Float, Float> activation, Function<Float, Float> derivative) {
+    public Activation(AIML.MLP.SingleFloatFunc activation, AIML.MLP.SingleFloatFunc derivative) {
         this.activation = activation; this.derivative = derivative;
     }
     
-    public Activation(float coeff, Function<Float, Float> activation, Function<Float, Float> derivative) {
-        this.activation = activation; this.derivative = derivative;
-        this.coeff = coeff;
-    }
-
     public float apply(float f) { return (float) this.activation.apply(f); }
     public float derive(float f) { return (float) this.derivative.apply(f); }
 
@@ -47,10 +39,7 @@ public final class Activation {
                         if (a  > 2.5) return 1.0f;
                         return (a * 0.2f) + 0.5f;
                     },
-                    (a) -> { 
-                        if (2.5 < a || a < -2.5) return 0.0f;
-                        else return 0.2f;
-                    }
+                    (a) -> (2.5 < a || a < -2.5) ? 0.0f : 0.2f
             ),
             TANH = new Activation(
                 (a) -> (float)Math.tanh(a),
@@ -65,16 +54,10 @@ public final class Activation {
                         if (-1 > a) return -1.0f;
                         return a;
                     },
-                    (a) -> {
-                        if (1 < a || a < -1) return 0.0f;
-                        return 1.0f;
-                    }
+                    (a) ->  (1 < a || a < -1) ? 0.0f : 1.0f                    
             ),
             HEAVISIDE_STEP = new Activation(
-                    (a) -> {
-                        if (a > 0) return 1.0f; 
-                        else return 0.0f;
-                    },
+                    (a) -> (a > 0) ? 1.0f : 0.0f,
                     (a) -> 0.0f
             ),
             SOFT_SIGN = new Activation(
@@ -86,4 +69,5 @@ public final class Activation {
                     }
             );
     //</editor-fold>
+    
 }

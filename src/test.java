@@ -4,9 +4,13 @@ public class test {
         
         AIML.MLP mlp = new AIML.MLP(0.05f, 4, 8, 6, 1);
         
-        mlp.setAllLayerActivation(AIML.Activation.TANH);
-        mlp.setFinalLayerActivation(AIML.Activation.SIGMOID);
+        mlp.setAllLayersActivation(AIML.Activation.HARD_TANH);
+        mlp.setFinalLayerActivation(AIML.Activation.HARD_SIGMOID);
         
+        oddCountTest(mlp);
+    }
+    
+    private static void oddCountTest(AIML.MLP mlp) {
         float[][] inputs = {
             {0,0,0,0},
             {0,0,0,1},

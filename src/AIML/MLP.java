@@ -4,7 +4,7 @@ public class MLP {
 
     private Layer[] layers;
     private float learningRate;
-    private static java.util.Random rand = new java.util.Random();
+    public static java.util.Random rand = new java.util.Random();
     
     /**
      * Constructor that takes layer sizes.
@@ -45,23 +45,32 @@ public class MLP {
         
         return result;
     }
-    public void train(float[] input, float[] target) {
+
+    public void train(float[] input, float[] target, BinaryFloatFunc errorFunction) {
         // Forward pass.
         float[] result = input;
         for (Layer layer : layers) result = layer.forward(result);
 
         // Compute output error.
         float[] error = new float[target.length];
-        for (int i = 0; i < target.length; i++) error[i] = target[i] - result[i];
+        for (int i = 0; i < target.length; i++) error[i] = errorFunction.apply(target[i], result[i]);
         
-
         // Backprop.
         float[] delta = error;
         for (int i = layers.length - 1; i >= 0; i--) delta = layers[i].backward(delta, learningRate);
     }
+    public void train(float[] input, float[] target) {
+        this.train(input, target, (a, b) -> a - b);
+    }
     
-    public void setAllLayerActivation(Activation a) {
+    @FunctionalInterface public interface SingleFloatFunc { float apply(float x); }
+    @FunctionalInterface public interface BinaryFloatFunc { float apply(float a, float b); }
+    
+    public void setAllLayersActivation(Activation a) {
         for (int i = 0; this.layers.length > i; i++) this.layers[i].activation = a;
+    }
+    public void setAllLayersExceptFinalActivation(Activation a) {
+        for (int i = 0; this.layers.length - 1 > i; i++) this.layers[i].activation = a;
     }
     public void setFinalLayerActivation(Activation a) { this.layers[this.layers.length - 1].activation = a; }
     public void setLayerActivation(int layer, Activation a) { this.layers[layer].activation = a; }
@@ -80,7 +89,7 @@ public class MLP {
             }
         );
     }
-    public AIML.MLP mutate(java.util.function.Function<Float, Float> mutate) {
+    public AIML.MLP mutate(SingleFloatFunc mutate) {
         // What the new layers of the new neural net will be
         Layer[] newLayers = new Layer[this.layers.length];
         
