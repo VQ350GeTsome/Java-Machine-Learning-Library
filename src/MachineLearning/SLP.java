@@ -1,4 +1,4 @@
-package AIML;
+package MachineLearning;
 
 public class SLP implements AI {
     
@@ -7,7 +7,7 @@ public class SLP implements AI {
     private final float[][] weights;
     private final float[] biases;
     
-    private AIML.Activation activation = AIML.Activation.HEAVISIDE_STEP;
+    private AI.Activation activation = AI.Activation.HEAVISIDE_STEP;
     
     private final float learningRate;
 
@@ -52,16 +52,20 @@ public class SLP implements AI {
 
     @Override
     public void train(float[] input, float[] target) {
+        this.train(input, target, (a, b) -> a - b);
+    }
+    @Override
+    public void train(float[] input, float[] target, MLP.BinaryFloatFunc errorFunction) {
         float[] output = forward(input);
 
         float[] delta = new float[outputSize];
 
-        for (int o = 0; o < outputSize; o++) {
-            float error = target[o] - output[o];
+        for (int o = 0; outputSize > o; o++) {
+            float error = errorFunction.apply(target[o], output[o]);
             delta[o] = error * activation.derive(output[o]);
         }
 
-        for (int o = 0; o < outputSize; o++) {
+        for (int o = 0; outputSize > o; o++) {
             for (int i = 0; i < inputSize; i++) {
                 weights[o][i] += learningRate * delta[o] * input[i];
             }
@@ -70,7 +74,7 @@ public class SLP implements AI {
     }
     
     @Override
-    public AIML.SLP uniformMutate(float mutation) {
+    public SLP uniformMutate(float mutation) {
         return this.mutate((a) -> {
                 float mutate = (float) ((Math.random() * 2 - 1) * mutation);
                 return a + mutate;
@@ -78,15 +82,15 @@ public class SLP implements AI {
         );
     }
     @Override
-    public AIML.SLP gaussianMutate(float mutation) {
+    public SLP gaussianMutate(float mutation) {
         return this.mutate((a) -> {
-                float mutate = (float) (AIML.MLP.RAND.nextGaussian() * mutation);
+                float mutate = (float) (MLP.RAND.nextGaussian() * mutation);
                 return a + mutate;
             }
         );
     }
     @Override
-    public AIML.SLP mutate(AIML.MLP.SingleFloatFunc mutator) {
+    public SLP mutate(MLP.SingleFloatFunc mutator) {
         float[][] newWeights = new float[outputSize][inputSize];
         float[] newBiases = new float[outputSize];
         
@@ -95,8 +99,8 @@ public class SLP implements AI {
                 newWeights[i][j] = mutator.apply(weights[i][j]);
             newBiases[i] = mutator.apply(biases[i]);
         }
-        return new AIML.SLP(this.learningRate, newWeights, newBiases);
+        return new SLP(this.learningRate, newWeights, newBiases);
     }
     
-    public void changeActivation(AIML.Activation a) { this.activation = a; }   
+    public void changeActivation(AI.Activation a) { this.activation = a; }   
 }

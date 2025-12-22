@@ -1,4 +1,4 @@
-package AIML;
+package MachineLearning;
 
 public class MLP implements AI{
 
@@ -12,7 +12,7 @@ public class MLP implements AI{
      *      Layer 1: 3 inputs => 4 outputs
      *      Layer 2: 4 inputs => 2 outputs
      *
-     * @param learningRate The rate at which this {@link AIML} will learn.
+     * @param learningRate The rate at which this {@link AI} will learn.
      * @param sizes The sizes of each layer (inputSize, hiddenSize..., outputSize).
      */
     public MLP(float learningRate, int... sizes) { 
@@ -21,7 +21,7 @@ public class MLP implements AI{
         this.learningRate = learningRate;
         
         layers = new Layer[sizes.length - 1];
-        for (int i = 0; layers.length > i; i++) layers[i] = new Layer(sizes[i], sizes[i + 1], AIML.Activation.LINEAR);
+        for (int i = 0; layers.length > i; i++) layers[i] = new Layer(sizes[i], sizes[i + 1], AI.Activation.LINEAR);
         
     }
     
@@ -49,6 +49,7 @@ public class MLP implements AI{
 
     @Override
     public void train(float[] input, float[] target) { this.train(input, target, (a, b) -> a - b); }
+    @Override
     public void train(float[] input, float[] target, BinaryFloatFunc errorFunction) {
         // Forward pass.
         float[] result = input;
@@ -66,17 +67,17 @@ public class MLP implements AI{
     @FunctionalInterface public interface SingleFloatFunc { float apply(float x); }
     @FunctionalInterface public interface BinaryFloatFunc { float apply(float a, float b); }
     
-    public void setAllLayersActivation(Activation a) {
+    public void setAllLayersActivation(AI.Activation a) {
         for (int i = 0; this.layers.length > i; i++) this.layers[i].activation = a;
     }
-    public void setAllLayersExceptFinalActivation(Activation a) {
+    public void setAllLayersExceptFinalActivation(AI.Activation a) {
         for (int i = 0; this.layers.length - 1 > i; i++) this.layers[i].activation = a;
     }
-    public void setFinalLayerActivation(Activation a) { this.layers[this.layers.length - 1].activation = a; }
-    public void setLayerActivation(int layer, Activation a) { this.layers[layer].activation = a; }
+    public void setFinalLayerActivation(AI.Activation a) { this.layers[this.layers.length - 1].activation = a; }
+    public void setLayerActivation(int layer, AI.Activation a) { this.layers[layer].activation = a; }
     
     @Override
-    public AIML.MLP uniformMutate(float mutation) {
+    public MLP uniformMutate(float mutation) {
         return this.mutate((a) -> {
                 float mutate = (float) ((Math.random() * 2 - 1) * mutation);
                 return a + mutate;
@@ -84,7 +85,7 @@ public class MLP implements AI{
         );
     }
     @Override
-    public AIML.MLP gaussianMutate(float mutation) {
+    public MLP gaussianMutate(float mutation) {
         return this.mutate((a) -> {
                 float mutate = (float) (RAND.nextGaussian() * mutation);
                 return a + mutate;
@@ -92,7 +93,7 @@ public class MLP implements AI{
         );
     }
     @Override
-    public AIML.MLP mutate(SingleFloatFunc mutator) {
+    public MLP mutate(SingleFloatFunc mutator) {
         // What the new layers of the new neural net will be
         Layer[] newLayers = new Layer[this.layers.length];
         
@@ -111,7 +112,7 @@ public class MLP implements AI{
 
             newLayers[i] = new Layer(newWeights, newBiases, l.activation);
         }
-        return new AIML.MLP(this.learningRate, newLayers);
+        return new MLP(this.learningRate, newLayers);
     }
     
     public int getLayerCount() { return layers.length; }
@@ -128,9 +129,9 @@ public class MLP implements AI{
         // Store the input, output, delta, & z.
         private float[] input, output, delta, z;
 
-        private AIML.Activation activation = AIML.Activation.LINEAR;
+        private AI.Activation activation = AI.Activation.LINEAR;
 
-        public Layer(int inputSize, int outputSize, AIML.Activation activation) {
+        public Layer(int inputSize, int outputSize, AI.Activation activation) {
             this.inputSize = inputSize;
             this.outputSize = outputSize;
             
@@ -142,7 +143,7 @@ public class MLP implements AI{
             initWeightsBiases();
         }
         
-        public Layer(float[][] weights, float[] biases, Activation activation) {
+        public Layer(float[][] weights, float[] biases, AI.Activation activation) {
             if (weights == null || weights.length == 0)
                 throw new IllegalArgumentException("Weights cannot be null or empty");  
  
