@@ -116,19 +116,20 @@ public class MLP implements AI {
     public int getLayerCount() { return layers.length; }
     public int getNeuronsOfLayer(int i) { return layers[i].getNeuronCount(); }
 
-    public class Layer {
+    public static class Layer {
         // Store the input & output sizes.
-        private final int inputSize, outputSize;
+        private int inputSize, outputSize;
 
         // Weight matrix & bias vector.
-        private final float[][] weights;
-        private final float[] biases;
+        private float[][] weights;
+        private float[] biases;
 
         // Store the input, output, delta, & z.
         private float[] input, output, delta, z;
 
         private AI.Activation activation = AI.Activation.LINEAR;
 
+        public Layer() { ; }
         public Layer(int inputSize, int outputSize, AI.Activation activation) {
             this.inputSize = inputSize;
             this.outputSize = outputSize;
@@ -140,7 +141,6 @@ public class MLP implements AI {
 
             initWeightsBiases();
         }
-        
         public Layer(float[][] weights, float[] biases, AI.Activation activation) {
             if (weights == null || weights.length == 0)
                 throw new IllegalArgumentException("Weights cannot be null or empty");  
@@ -192,7 +192,6 @@ public class MLP implements AI {
             }
             return output;
         }
-
         public float[] backward(float[] gradOutput, float learningRate) {
             float[] gradInput = new float[inputSize];
             delta = new float[outputSize];
@@ -214,8 +213,14 @@ public class MLP implements AI {
         }
         
         public int getNeuronCount() { return this.biases.length; }
+        
         public float[][] getWeightMatrix() { return this.weights; }
+        public void setWeightMatrix(float[][] m) { this.weights = m; }
+        
         public float[] getBiasVector() { return biases; }
+        public void setBiasVector(float[] b) { this.biases = b; }        
+        
+        public void setActivationFunc(AI.Activation a) { this.activation = a; }
 
         @Override
         public String toString() {
@@ -239,24 +244,20 @@ public class MLP implements AI {
             return sb.toString();
         }
         
-        public String toStringForCopy() {
+        public String toCSV() {
             StringBuilder sb = new StringBuilder();
-            sb.append("{\n");
-            sb.append("  Activation Function : ").append(activation.toString()).append("\n");
-            sb.append("  weights = {\n");
 
+            sb.append("weights,\n");
             for (float[] row : weights) {
-                sb.append("     {");
-                for (double w : row) sb.append(String.format("%8.4f, ", w)).append("f");
-                sb.append("}\n");
+                for (int i = 0; i < row.length; i++) {
+                    sb.append(row[i]);
+                    if (i < row.length - 1) sb.append(",");
+                }
+                sb.append("\n");
             }
-
-            sb.append("  }\n");
-            sb.append("  biases = { ");
-            for (double b : biases) sb.append(String.format("%8.4f, ", b)).append("f");
-            sb.append("}\n");
-            sb.append("}");
-
+            sb.append("biases,\n");
+            for (float f : biases) sb.append(f).append(",");
+            
             return sb.toString();
         }
     }
@@ -273,12 +274,12 @@ public class MLP implements AI {
         return sb.toString();
     }
     
-    public String toStringForCopy() {
+    public String toCSV() {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; layers.length > i; i++) {
-            sb.append("Layer ").append(i+1).append(" ");
-            sb.append(layers[i].toStringForCopy()).append("\n\n");
+            sb.append("Layer ").append(i+1).append(",\n");
+            sb.append(layers[i].toCSV()).append("\n\n");
         }
         
         return sb.toString();

@@ -126,24 +126,20 @@ public class SLP implements AI {
         return sb.toString();
     }
     
-    public String toStringForCopy() {
+    public String toCSV() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{\n");
-        sb.append("  Activation Function : ").append(activation.toString()).append("\n");
-        sb.append("  weights = {\n");
 
-        for (float[] row : weights) {
-            sb.append("    {");
-            for (float w : row) sb.append(String.format("%8.4f, ", w)).append("f");
-            sb.append("}\n");
-        }
-
-        sb.append("  }\n");
-        sb.append("  biases = { ");
-        for (float b : biases) sb.append(String.format("%8.4f, ", b)).append("f");
-        sb.append("}\n");
-        sb.append("}");
-
-        return sb.toString();
+            sb.append("weights,\n");
+            for (float[] row : weights) {
+                for (int i = 0; i < row.length; i++) {
+                    sb.append(row[i]);
+                    if (i < row.length - 1) sb.append(",");
+                }
+                sb.append("\n");
+            }
+            sb.append("biases,\n");
+            for (float f : biases) sb.append(f).append(",");
+            
+            return sb.toString();
     }
 }
