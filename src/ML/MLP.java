@@ -225,15 +225,36 @@ public class MLP implements AI {
             sb.append("  weights = [\n");
 
             for (float[] row : weights) {
-                sb.append("    ");
-                for (double w : row) sb.append(String.format("%8.4f ", w));
-                sb.append("\n");
+                sb.append("     (");
+                for (double w : row) sb.append(String.format("%8.4f, ", w));
+                sb.append(")\n");
             }
 
             sb.append("  ]\n");
-            sb.append("  biases = [ ");
-            for (double b : biases) sb.append(String.format("%8.4f ", b));
-            sb.append("]\n");
+            sb.append("  biases = ( ");
+            for (double b : biases) sb.append(String.format("%8.4f, ", b));
+            sb.append(")\n");
+            sb.append("}");
+
+            return sb.toString();
+        }
+        
+        public String toStringForCopy() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  Activation Function : ").append(activation.toString()).append("\n");
+            sb.append("  weights = {\n");
+
+            for (float[] row : weights) {
+                sb.append("     {");
+                for (double w : row) sb.append(String.format("%8.4f, ", w)).append("f");
+                sb.append("}\n");
+            }
+
+            sb.append("  }\n");
+            sb.append("  biases = { ");
+            for (double b : biases) sb.append(String.format("%8.4f, ", b)).append("f");
+            sb.append("}\n");
             sb.append("}");
 
             return sb.toString();
@@ -247,6 +268,17 @@ public class MLP implements AI {
         for (int i = 0; layers.length > i; i++) {
             sb.append("Layer ").append(i+1).append(" ");
             sb.append(layers[i].toString()).append("\n\n");
+        }
+        
+        return sb.toString();
+    }
+    
+    public String toStringForCopy() {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; layers.length > i; i++) {
+            sb.append("Layer ").append(i+1).append(" ");
+            sb.append(layers[i].toStringForCopy()).append("\n\n");
         }
         
         return sb.toString();
