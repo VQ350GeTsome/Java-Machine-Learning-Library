@@ -226,17 +226,13 @@ public class MLP implements AI {
 
             for (float[] row : weights) {
                 sb.append("    ");
-                for (double w : row) {
-                    sb.append(String.format("%8.4f ", w));
-                }
+                for (double w : row) sb.append(String.format("%8.4f ", w));
                 sb.append("\n");
             }
 
             sb.append("  ]\n");
             sb.append("  biases = [ ");
-            for (double b : biases) {
-                sb.append(String.format("%8.4f ", b));
-            }
+            for (double b : biases) sb.append(String.format("%8.4f ", b));
             sb.append("]\n");
             sb.append("}");
 

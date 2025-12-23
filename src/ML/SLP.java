@@ -103,4 +103,26 @@ public class SLP implements AI {
     }
     
     public void changeActivation(AI.Activation a) { this.activation = a; }   
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+        sb.append("  Activation Function : ").append(activation.toString()).append("\n");
+        sb.append("  weights = [\n");
+
+        for (float[] row : weights) {
+            sb.append("    ");
+            for (float w : row) sb.append(String.format("%8.4f ", w));
+            sb.append("\n");
+        }
+
+        sb.append("  ]\n");
+        sb.append("  biases = [ ");
+        for (float b : biases) sb.append(String.format("%8.4f ", b));
+        sb.append("]\n");
+        sb.append("}");
+
+        return sb.toString();
+    }
 }
