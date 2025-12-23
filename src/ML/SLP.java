@@ -21,7 +21,7 @@ public class SLP implements AI {
         this.initWeightsBiases();
     }
     
-    private SLP(float learningRate, float[][] weights, float[] biases) {
+    public SLP(float learningRate, float[][] weights, float[] biases) {
         this.learningRate = learningRate;
         this.weights = weights;
         this.biases = biases;

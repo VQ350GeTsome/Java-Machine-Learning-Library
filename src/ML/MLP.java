@@ -1,10 +1,9 @@
 package ML;
 
-public class MLP implements AI{
+public class MLP implements AI {
 
     private Layer[] layers;
     private final float learningRate;
-    
     
     /**
      * Constructor that takes layer sizes.
@@ -22,10 +21,9 @@ public class MLP implements AI{
         
         layers = new Layer[sizes.length - 1];
         for (int i = 0; layers.length > i; i++) layers[i] = new Layer(sizes[i], sizes[i + 1], AI.Activation.LINEAR);
-        
     }
     
-    private MLP(float learningRate, Layer[] layers) {
+    public MLP(float learningRate, Layer[] layers) {
         this.learningRate = learningRate;
         this.layers = layers;
     }
@@ -118,7 +116,7 @@ public class MLP implements AI{
     public int getLayerCount() { return layers.length; }
     public int getNeuronsOfLayer(int i) { return layers[i].getNeuronCount(); }
 
-    private class Layer {
+    public class Layer {
         // Store the input & output sizes.
         private final int inputSize, outputSize;
 
@@ -187,7 +185,8 @@ public class MLP implements AI{
                 // Calculate the weighted sum.
                 for (int j = 0; j < inputSize; j++) sum += weights[i][j] * input[j];
                 
-                // Apply the activation function and store it in the output array.
+                // Store the sum in the z array, & the activated
+                // output in the output array.
                 z[i] = sum;
                 output[i] = activation.apply(sum);
             }
@@ -217,11 +216,43 @@ public class MLP implements AI{
         public int getNeuronCount() { return this.biases.length; }
         public float[][] getWeightMatrix() { return this.weights; }
         public float[] getBiasVector() { return biases; }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
+            sb.append("  Activation Function : ").append(activation.toString()).append("\n");
+            sb.append("  weights = [\n");
+
+            for (float[] row : weights) {
+                sb.append("    ");
+                for (double w : row) {
+                    sb.append(String.format("%8.4f ", w));
+                }
+                sb.append("\n");
+            }
+
+            sb.append("  ]\n");
+            sb.append("  biases = [ ");
+            for (double b : biases) {
+                sb.append(String.format("%8.4f ", b));
+            }
+            sb.append("]\n");
+            sb.append("}");
+
+            return sb.toString();
+        }
     }
     
     @Override
     public String toString() {
-        // Needs to be made. Print weights & biases.
-        return "";
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; layers.length > i; i++) {
+            sb.append("Layer ").append(i+1).append(" ");
+            sb.append(layers[i].toString()).append("\n\n");
+        }
+        
+        return sb.toString();
     }
 }
